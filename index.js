@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const client = new Discord.Client({intents: ["GUILDS", "GUILD_MEMBERS", "DIRECT_MESSAGES", "GUILD_BANS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_INVITES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_PRESENCES", "GUILD_VOICE_STATES", "GUILD_MESSAGES"]});
 const fs = require("fs");
 
 
@@ -11,8 +11,7 @@ client.login(discord_token);
 client.commands = new Discord.Collection();
 
 var guildSettings = JSON.parse(fs.readFileSync('./settings.json', 'utf-8'));
-var never_ever = JSON.parse(fs.readFileSync('./never_ever.json', 'utf-8'));
-var prefix = "~";
+var default_prefix = "b!";
 var musicchace = [];
 var cmmds = [];
 
@@ -41,24 +40,18 @@ fs.readdir("./cmds/", (err, files) => {
 });
 
 client.on("ready", () => {
-  console.log("BittyBot is online!");
-  client.user.setActivity("~help for Help");
+  console.log("BouncyBot is online!");
+  client.user.setActivity(`${default_prefix}help for bouncy Help`);
 })
 
-client.on("message", async message => {
+client.on("messageCreate", async message => {
   if(message.author.bot) return;
   if(message.channel.type === "dm") return message.channel.send("Hi");
   
   if(!guildSettings[message.guild.id]) {
     guildSettings[message.guild.id] = {
       quotes: [],
-      prefix: "~"
-    }
-    updatedata();
-  }
-  if(!never_ever[message.guild.id]) {
-    never_ever[message.guild.id] = {
-      questions: []
+      prefix: default_prefix
     }
     updatedata();
   }
@@ -76,11 +69,22 @@ client.on("message", async message => {
   let messageArray = message.content.split(/\s+/g);
   let command = messageArray[0];
   let args = messageArray.slice(1);
-  if(command.startsWith("~")) prefix = "~";
+  if(command.startsWith(default_prefix)) prefix = default_prefix;
   if(!command.startsWith(prefix)) return;
 
   let cmd = client.commands.get(command.slice(prefix.length));
-  if(cmd) cmd.run(client, message, args, guildSettings, updatedata, musicchace, cmmds, never_ever);
+  //everything a command could ever want
+  cmd_arguments = {
+    client: client,
+    message: message,
+    args: args,
+    guildSettings: guildSettings,
+    updatedata: updatedata,
+    cmmds: cmmds,
+    prefix: prefix,
+    default_prefix: default_prefix
+  }
+  if(cmd) cmd.run(cmd_arguments);
 })
 
 function updatedata() {
@@ -89,11 +93,5 @@ function updatedata() {
     if(err) {
         console.log(err)
     }
-  });
-  var data = JSON.stringify(never_ever);
-  fs.writeFile("never_ever.json", data, function(err) {
-    if(err) {
-        console.log(err)
-    }
-  });
+  })
 }

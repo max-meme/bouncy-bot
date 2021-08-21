@@ -1,8 +1,10 @@
 const Discord = module.require("discord.js")
 
-var categories = ["music", "quotes", "shipping", "misc", "never have I ever"]
-module.exports.run = async (client, message, args, guildSettings, updatedata, musicchace, cmmds) => {
-	var mess = new Discord.RichEmbed().setColor(0x33ccff).setFooter("< > = necessary, ( ) = optional");
+var categories = ["misc"]
+module.exports.run = async (cmd_arguments) => {
+	cmmds = cmd_arguments.cmmds;
+	args = cmd_arguments.args
+	var mess = new Discord.MessageEmbed().setColor("#1fe8f2").setFooter("< > = necessary, ( ) = optional");
 	if(args[0]) {
 		var gefunden = false;
 		var i;
@@ -12,7 +14,7 @@ module.exports.run = async (client, message, args, guildSettings, updatedata, mu
 				break;
 			} 
 		}
-		if(!gefunden) return message.channel.send(`No command found called ${args[0]}`);
+		if(!gefunden) return cmd_arguments.message.channel.send(`No command found called ${args[0]}`);
 		mess.setTitle(cmmds[i].name).addField(cmmds[i].usage, cmmds[i].func);
 	} else {
 		mess.setTitle("Commands");
@@ -20,19 +22,21 @@ module.exports.run = async (client, message, args, guildSettings, updatedata, mu
 		for (var i = 0; i < categories.length; i++) {
 			for (var j = 0; j < cmmds.length; j++) {
 				if(cmmds[j].category == categories[i]) {
-					text2 = text2 + `\`${cmmds[j].usage}\`  `
+					usage = cmmds[j].usage
+					usage.replace("(default_prefix)", cmd_arguments.default_prefix)
+					text2 = text2 + `\`${usage}\`  \n`
 				}
 			}
 			mess.addField(categories[i], text2)
 			text2 = "";
 		}
 	}
-	message.channel.send(mess);
+	cmd_arguments.message.channel.send({ embeds: [mess] });
 }
 
 module.exports.help = {
 	name: "help",
-	usage: "~help (command)",
+	usage: `(default_prefix)help (command)`,
 	category: "misc",
 	func: "list of all commands"
 }
