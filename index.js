@@ -1,10 +1,9 @@
 const Discord = require("discord.js");
-const client = new Discord.Client({intents: ["GUILDS", "GUILD_MEMBERS", "DIRECT_MESSAGES", "GUILD_BANS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_INVITES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_PRESENCES", "GUILD_VOICE_STATES", "GUILD_MESSAGES"]});
+const client = new Discord.Client({intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_BANS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_INVITES", "GUILD_MESSAGE_REACTIONS", "GUILD_PRESENCES", "GUILD_VOICE_STATES", "GUILD_MESSAGES", "DIRECT_MESSAGES", "DIRECT_MESSAGE_TYPING"], partials: ["CHANNEL"]});
 const fs = require("fs");
 
 
 //tokens
-const yt_api_key = "AIzaSyDH1oVSXCfZLbo1eenRvSFdgk84XD7bXdc";
 const discord_token = "ODc4NDc0NzEyODU3MDgzOTA2.YSBtVA.1szldjRXrViutLqO5VRcsfVWLlY";
 
 client.login(discord_token);
@@ -12,7 +11,6 @@ client.commands = new Discord.Collection();
 
 var guildSettings = JSON.parse(fs.readFileSync('./settings.json', 'utf-8'));
 var default_prefix = "b!";
-var musicchace = [];
 var cmmds = [];
 
 fs.readdir("./cmds/", (err, files) => {
@@ -41,32 +39,23 @@ fs.readdir("./cmds/", (err, files) => {
 
 client.on("ready", () => {
   console.log("BouncyBot is online!");
-  client.user.setActivity(`${default_prefix}help for bouncy Help`);
+  client.user.setActivity(`${default_prefix}help for bouncy Help | Bouncy is currently in beta`);
 })
 
 client.on("messageCreate", async message => {
   if(message.author.bot) return;
-  if(message.channel.type === "dm") return message.channel.send("Hi");
+  if(message.channel.type === "DM") return message.channel.send("Hi");
   
   if(!guildSettings[message.guild.id]) {
     guildSettings[message.guild.id] = {
-      quotes: [],
+      player_cache: [],
       prefix: default_prefix
     }
     updatedata();
   }
   if(guildSettings[message.guild.id].prefix) prefix = guildSettings[message.guild.id].prefix;
 
-  if(!musicchace[message.guild.id]) {
-    musicchace[message.guild.id] = {
-      search: [],
-      queue: [],
-      dispatcher: null,
-      isplaying: false
-    }
-  }
-
-  let messageArray = message.content.split(/\s+/g);
+  let messageArray = message.content.toLowerCase().split(/\s+/g);
   let command = messageArray[0];
   let args = messageArray.slice(1);
   if(command.startsWith(default_prefix)) prefix = default_prefix;
@@ -84,8 +73,21 @@ client.on("messageCreate", async message => {
     prefix: prefix,
     default_prefix: default_prefix
   }
-  if(cmd) cmd.run(cmd_arguments);
+  if(cmd) {
+    var err = check_settings(cmd_arguments, cmd);
+    if(err) return message.channel.send(err)
+    cmd.run(cmd_arguments);
+  } 
 })
+
+//responsible for checking the commands settings before the command is run
+function check_settings(cmd_arguments, cmd) {
+  var error = null;
+  if(cmd.settings.req_args > cmd_arguments.args.length) {
+    error = `Missing ${cmd.settings.req_args - cmd_arguments.args.length} option(s)`
+  }
+  return error
+}
 
 function updatedata() {
   var data = JSON.stringify(guildSettings);

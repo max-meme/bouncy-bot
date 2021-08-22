@@ -1,10 +1,10 @@
 const Discord = module.require("discord.js")
 
-var categories = ["misc"]
+var categories = ["misc", "overwatch"]
 module.exports.run = async (cmd_arguments) => {
-	cmmds = cmd_arguments.cmmds;
-	args = cmd_arguments.args
-	var mess = new Discord.MessageEmbed().setColor("#1fe8f2").setFooter("< > = necessary, ( ) = optional");
+	var cmmds = cmd_arguments.cmmds;
+	var args = cmd_arguments.args;
+	var mess = new Discord.MessageEmbed().setColor("#1fe8f2").setFooter("Options: < > = required, ( ) = optional");
 	if(args[0]) {
 		var gefunden = false;
 		var i;
@@ -15,19 +15,21 @@ module.exports.run = async (cmd_arguments) => {
 			} 
 		}
 		if(!gefunden) return cmd_arguments.message.channel.send(`No command found called ${args[0]}`);
-		mess.setTitle(cmmds[i].name).addField(cmmds[i].usage, cmmds[i].func);
+		usage = cmmds[i].usage;
+		usage = usage.replace("(prefix)", cmd_arguments.prefix);
+		mess.setTitle(cmmds[i].name).addField(usage, cmmds[i].func);
 	} else {
 		mess.setTitle("Commands");
 		var text2 = "";
 		for (var i = 0; i < categories.length; i++) {
 			for (var j = 0; j < cmmds.length; j++) {
 				if(cmmds[j].category == categories[i]) {
-					usage = cmmds[j].usage
-					usage.replace("(default_prefix)", cmd_arguments.default_prefix)
+					usage = cmmds[j].usage;
+					usage = usage.replace("(prefix)", cmd_arguments.prefix);
 					text2 = text2 + `\`${usage}\`  \n`
 				}
 			}
-			mess.addField(categories[i], text2)
+			if(text2 != "") mess.addField(categories[i], text2)
 			text2 = "";
 		}
 	}
@@ -36,7 +38,11 @@ module.exports.run = async (cmd_arguments) => {
 
 module.exports.help = {
 	name: "help",
-	usage: `(default_prefix)help (command)`,
+	usage: `(prefix)help (command)`,
 	category: "misc",
-	func: "list of all commands"
+	func: "list of all commands or help for a specific command when (command) is given"
+}
+
+module.exports.settings = {
+    req_args: 0
 }
