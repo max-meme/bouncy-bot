@@ -3,13 +3,15 @@ const client = new Discord.Client({intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_B
 const fs = require("fs");
 
 
-//tokens
-const discord_token = "ODc4NDc0NzEyODU3MDgzOTA2.YSBtVA.1szldjRXrViutLqO5VRcsfVWLlY";
 
-client.login(discord_token);
+//load files
+var guildSettings = JSON.parse(fs.readFileSync('./settings.json', 'utf-8'));
+var creds = JSON.parse(fs.readFileSync('./creds.json', 'utf-8'));
+
+//login discord bot
+client.login(creds.discord_token);
 client.commands = new Discord.Collection();
 
-var guildSettings = JSON.parse(fs.readFileSync('./settings.json', 'utf-8'));
 var default_prefix = "b!";
 var cmmds = [];
 
