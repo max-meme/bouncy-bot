@@ -1,3 +1,4 @@
+//TODO: unranked players and say if ppl have been removed
 const Discord = module.require("discord.js")
 
 module.exports.run = async function run(cmd_arguments) {
@@ -5,8 +6,7 @@ module.exports.run = async function run(cmd_arguments) {
     var team1 = [];
     var team2 = [];
     var removed = null;
-    //sort players by sr
-    players.sort(compare);
+    var unraked_players = [];
 
     //remove a random player if the team size is odd
     if(players.length % 2 == 1) {
@@ -20,35 +20,60 @@ module.exports.run = async function run(cmd_arguments) {
         players.splice(rn, 1)
     }
 
+    //filter out unranked players
+    for (let i = players.length - 1; i >= 0; i--) {
+        const player = players[i];
+        if(player.unraked) {
+            unraked_players.push(player);
+            players.splice(i, 1);
+        }
+    }
+
     for (let i = 0; i < players.length; i++) {
         const player = players[i];
         if(i % 2 == 0) team1.push(player);
         else team2.push(player);
     }
-    console.log(team1)
-    console.log(team2)
 
-    let text = "**Team 1** \n"
+    var change = true;
+    while(change) {
+        change = false;
+        for (let i = 0; i < team1.length; i++) {
+            const player1 = team1[i];
+            for (let j = 0; j < team2.length; j++) {
+                const player2 = team2[j];
+                
+                let testTeam1 = [...team1];
+                let testTeam2 = [...team2];
+                testTeam1[i] = team2[j];
+                testTeam2[j] = team1[i];
+
+                //check if the sr difference between the teams got smaller
+                if(Math.abs(calcTeamSR(team1) - calcTeamSR(team2)) > Math.abs(calcTeamSR(testTeam1) - calcTeamSR(testTeam2))) {
+                    change = true;
+                    team1 = testTeam1;
+                    team2 = testTeam2;
+                }
+            }
+        }
+    }
+
+    let text = `**Team 1** with an average SR of ${Math.round(calcTeamSR(team1) / 2)} a total SR of ${calcTeamSR(team1)}\n`
     team1.forEach(player => {
-        text = text + `${player.name} \n`;
+        text = text + `${player.name} | ${player.sr} \n`;
     });
-    text = text + "\n**Team 2** \n"
+    text = text + `**Team 2** with an average SR of ${Math.round(calcTeamSR(team2) / 2)} a total SR of ${calcTeamSR(team2)}\n`
     team2.forEach(player => {
-        text = text + `${player.name} \n`;
+        text = text + `${player.name} | ${player.sr} \n`;
     });
     cmd_arguments.message.channel.send(text);
-    
 
-
-    //compare players a and b
-    function compare(a, b) {
-        if (a.sr < b.sr){
-          return -1;
-        }
-        if (a.sr > b.sr){
-          return 1;
-        }
-        return 0;
+    function calcTeamSR(team) {
+        var sr = 0;
+        team.forEach(player => {
+            sr = sr + player.sr;
+        });
+        return sr;
     }
 }
 
