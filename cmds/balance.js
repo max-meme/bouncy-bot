@@ -62,7 +62,7 @@ module.exports.run = async function run(cmd_arguments) {
     team1.forEach(player => {
         text = text + `${player.name} | ${player.sr} \n`;
     });
-    text = text + `**Team 2** with an average SR of ${Math.round(calcTeamSR(team2) / 2)} a total SR of ${calcTeamSR(team2)}\n`
+    text = text + `\n**Team 2** with an average SR of ${Math.round(calcTeamSR(team2) / 2)} a total SR of ${calcTeamSR(team2)}\n`
     team2.forEach(player => {
         text = text + `${player.name} | ${player.sr} \n`;
     });
